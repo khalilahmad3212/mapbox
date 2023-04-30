@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Mapbox GL Markers Example</title>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v2.5.1/mapbox-gl.css' rel='stylesheet' />
+  <style>
+    /* Set the map container size */
+    #map {
+      height: 670px;
+      width: 100%;
+    }
+
+    img {
+        width: 30px;
+        height: 30px;
+        border-radius: 5px;
+    }
+
+    .marquee-container {
+        flex: 1; /* Take up remaining space */
+        display: flex; /* Nested flexbox container */
+        align-items: center; /* Align items vertically in the center */
+    }
+
+    marquee {   
+        width: 100px; /* set the desired width */
+        height: 23px; 
+        white-space: nowrap; /* Prevents text from wrapping to a new line */
+        overflow: hidden; /* Hides any overflow of text */
+        width: 100%; /* Adjust width to suit your needs */
+        flex: 1; /* Take up remaining space */
+        font-size: 15px;
+        font-weight: normal;
+        padding-top: 3px;
+        font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif
+    }
+
+    .marker-container {
+      background-color: white;
+        display: flex;
+        align-items: center; /* Align items vertically in the center */
+        border-radius: 7px; 
+    }
+
+  </style>
+</head>
+<body>
+
+  <div id='map'></div>
+
+  <script src='https://api.mapbox.com/mapbox-gl-js/v2.5.1/mapbox-gl.js'></script>
+  <script>
+
+        mapboxgl.accessToken = 'pk.eyJ1IjoibmltYXJ0YSIsImEiOiJjbGc0dHhkbWQwMDRiM2pwZGRtaWduZmo4In0.zj1d4o58qXo76SQ6Kr98nw';
+
+        // Initialize Mapbox GL map
+        var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [0,0],
+            zoom: 0
+        });
+
+        function normalizeLatLng(lat, lng) {
+            // Normalize latitude
+            lat = Math.max(Math.min(lat, 90), -90);
+            
+            // Normalize longitude
+            lng = ((lng + 180) % 360 + 360) % 360 - 180;
+
+            return { lat: lat, lng: lng };
+            }
+
+            
+        
+        // Fetch data from JSON file
+        fetch('articles.json')
+            .then(response => response.json())
+            .then(data => {
+                var count=0;
+                // Add markers and popups to the map
+                for (var i = 0; i < data.length; i++) {
+                    count = count+10;
+                    // Create marker element
+                    var el = document.createElement('div');
+                    el.className = 'marker';
+                    el.innerHTML = '<div class="marker-container"><img src="' + data[i].logo + '"/><div class="marquee-container"><marquee behavior="scroll" direction="right">' + data[i].title + '</marquee></div></div>';
+
+                    // Create popup element
+                    var popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
+                        '<p class="marker-title">' + data[i].url + '</p>'
+                    );
+
+                    if (data[i].hasOwnProperty('coordinates'))
+                    {
+                        var latitude = data[i]["coordinates"][0];
+                        var longitude = data[i]["coordinates"][1];
+                        var normalizedLatLng = normalizeLatLng(latitude, longitude);
+                        console.log('Normalized Latitude:', normalizedLatLng.lat);
+                        console.log('Normalized Longitude:', normalizedLatLng.lng);
+                        latitude, longitude = normalizedLatLng.lat, normalizedLatLng.lng
+
+                        // Add marker to the map
+                        console.log(data[i].coordinates)
+                        new mapboxgl.Marker(el)
+                            .setLngLat([latitude, longitude])
+                            .setPopup(popup)
+                            .addTo(map);
+                    }
+                }
+            })
+            .catch(function(error) {
+                console.error('Error fetching data:', error);
+            });
+  </script>
+</body>
+</html>
